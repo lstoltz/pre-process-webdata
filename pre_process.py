@@ -7,7 +7,6 @@ PATH = r"C:\Users\lstol\Documents\Repositories\pre-process-webdata\data"
 DEST = r"C:\Users\lstol\Documents\Repositories\pre-process-webdata\complete"
 FLAG = r"C:\Users\lstol\Documents\Repositories\pre-process-webdata\flagged"
 
-
 def findCSV(PATH):
     csvFiles = [file
                     for path, subdir, files in os.walk(PATH) # find all csv files in a directory
@@ -38,10 +37,12 @@ def runChecks():
         #     shutil.copyfile(lidFilePath, os.path.join(FLAG, os.path.basename(lidFilePath)))
         else:
             tidyGPS(gpsFilePath)
-            checkLatLon(gpsFilePath)
+            if checkLatLon(gpsFilePath):
+                checkInWater(file)
 
-def checkInWater():
-    pass
+def checkInWater(file):
+    df = pd.read_csv(file)
+    print(df)
 
 def checkLatLon(gpsFilePath):
     with open(gpsFilePath[0], 'r') as fp:
