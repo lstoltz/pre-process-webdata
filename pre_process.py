@@ -3,6 +3,7 @@ from glob import glob
 import pandas as pd
 import fnmatch as fn
 import numpy as np
+from data.py import DataFile
 
 PATH = r"C:\Users\lstol\Documents\Repositories\pre-process-webdata\data"
 DEST = r"C:\Users\lstol\Documents\Repositories\pre-process-webdata\complete"
@@ -12,7 +13,7 @@ class GoodDataFiles:
     def __init__(self, goodfile) -> None:
         self.keep = []
         self.keep.append(goodfile)
-        
+
     def showGoodFile(self):
         return self.keep
 
@@ -35,19 +36,45 @@ def findLID(PATH):
     return lidFiles
 
 def runChecks():
+    # Change this to use the for loop to call separate DataFile classes like this
     for file in findCSV(PATH):
         currentCSV = os.path.basename(file)[:-20]
         gpsFilePath = fn.filter(findGPS(PATH), str('*'+currentCSV+'*'))
-        # lidFilePath = fn.filter(findLID(PATH), str('*'+currentCSV+'*'))
+        lidFilePath = fn.filter(findLID(PATH), str('*'+currentCSV+'*'))
 
-        if gpsFilePath == []:
-            shutil.copyfile(file, os.path.join(FLAG, os.path.basename(file)))
-        # elif lidFilePath == []:
-        #     shutil.copyfile(lidFilePath, os.path.join(FLAG, os.path.basename(lidFilePath)))
+        # File load handles checks
+        data = DataFile(file, gpsFilePath, lidFilePath)
+        data.loadGPSData(self.gps_file)
+        gps_good = data.checkGPSData()
+
+        if (gps_good):
+            data.loadCSVData(self.csv_file)
+            data.checkCSVData()
         else:
-            tidyGPS(gpsFilePath)
-            if checkLatLon(gpsFilePath):
-                checkInWater(file)
+            continue # GPS data is bad, skipping
+
+        # Filtering - add more filters to this as needed
+        data.tidyGPS()
+        data.checkLatLon()
+        data.checkInWater()
+
+        # Copy/store data
+        data.store()
+
+
+    # for file in findCSV(PATH):
+    #     currentCSV = os.path.basename(file)[:-20]
+    #     gpsFilePath = fn.filter(findGPS(PATH), str('*'+currentCSV+'*'))
+    #     # lidFilePath = fn.filter(findLID(PATH), str('*'+currentCSV+'*'))
+
+    #     if gpsFilePath == []:
+    #         shutil.copyfile(file, os.path.join(FLAG, os.path.basename(file)))
+    #     # elif lidFilePath == []:
+    #     #     shutil.copyfile(lidFilePath, os.path.join(FLAG, os.path.basename(lidFilePath)))
+    #     else:
+    #         tidyGPS(gpsFilePath)
+    #         if checkLatLon(gpsFilePath):
+    #             checkInWater(file)
 
 def checkInWater(file):
     idx_a = 0
@@ -88,7 +115,7 @@ def checkLatLon(gpsFilePath):
 
     if not stripped_data:
         return False
-    else: 
+    else:
         return True
 
 def tidyGPS(gpsFilePath):
@@ -116,11 +143,11 @@ def tidyGPS(gpsFilePath):
         if stripped_data == []:
             stripped_data.append("RWS: N/A N/A")
             stripped_data.append("SWS: N/A N/A")
-                        
+
     except:
         pass
     filename = os.path.join(PATH, os.path.basename(gpsFilePath[0]))
-    with open(filename,'w') as fp:            
+    with open(filename,'w') as fp:
         for item in stripped_data:
             fp.write("%s\n" % item)
         fp.close()
