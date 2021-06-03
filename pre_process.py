@@ -47,7 +47,8 @@ def runChecks():
         else:
             tidyGPS(gpsFilePath)
             if checkLatLon(gpsFilePath):
-                checkInWater(file)
+                pass
+                # checkInWater(file)
 
 def checkInWater(file):
     idx_a = 0
@@ -119,7 +120,7 @@ def tidyGPS(gpsFilePath):
                         
     except:
         pass
-    filename = os.path.join(PATH, os.path.basename(gpsFilePath[0]))
+    filename = gpsFilePath[0]
     with open(filename,'w') as fp:            
         for item in stripped_data:
             fp.write("%s\n" % item)
