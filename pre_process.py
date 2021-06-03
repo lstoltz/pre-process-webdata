@@ -2,10 +2,19 @@ import os, shutil
 from glob import glob
 import pandas as pd
 import fnmatch as fn
+import numpy as np
 
 PATH = r"C:\Users\lstol\Documents\Repositories\pre-process-webdata\data"
 DEST = r"C:\Users\lstol\Documents\Repositories\pre-process-webdata\complete"
 FLAG = r"C:\Users\lstol\Documents\Repositories\pre-process-webdata\flagged"
+
+class GoodDataFiles:
+    def __init__(self, goodfile) -> None:
+        self.keep = []
+        self.keep.append(goodfile)
+        
+    def showGoodFile(self):
+        return self.keep
 
 def findCSV(PATH):
     csvFiles = [file
@@ -41,8 +50,30 @@ def runChecks():
                 checkInWater(file)
 
 def checkInWater(file):
+    idx_a = 0
+    idx_b = 1
+    in_thresh = 5
+    out_thresh = -5
     df = pd.read_csv(file)
-    print(df)
+    spikes = []
+    try:
+        while idx_b <= len(df.index):
+            spikes.append(df.iloc[idx_a, df.columns.get_loc('DO Temperature (C)')] - df.iloc[idx_b, df.columns.get_loc('DO Temperature (C)')])
+            idx_a += 1
+            idx_b += 1
+    except:
+        pass
+    pos_drop = []
+    for idx in range(0,len(spikes)):
+        if spikes[idx] > in_thresh:
+            pos_drop.append(idx)
+
+    neg_drop = []
+    for idx in range(0, len(spikes)):
+        if spikes[idx] < out_thresh:
+            neg_drop.append(idx)
+
+    print(neg_drop)
 
 def checkLatLon(gpsFilePath):
     with open(gpsFilePath[0], 'r') as fp:
