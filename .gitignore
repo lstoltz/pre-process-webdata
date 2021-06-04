@@ -2,3 +2,4 @@ env/
 data/
 flagged/
 complete/
+.env

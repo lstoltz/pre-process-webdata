@@ -4,10 +4,13 @@ import pandas as pd
 import fnmatch as fn
 import numpy as np
 from data import DataFile
+from dotenv import load_dotenv
 
-PATH = r"C:\Users\lstol\Documents\Repositories\pre-process-webdata\data"
-DEST = r"C:\Users\lstol\Documents\Repositories\pre-process-webdata\complete"
-FLAG = r"C:\Users\lstol\Documents\Repositories\pre-process-webdata\flagged"
+load_dotenv()
+
+PATH = os.getenv("PATH")
+DEST = os.getenv("DEST")
+FLAG = os.getenv("FLAG")
 
 def findCSV(PATH):
     csvFiles = [file
