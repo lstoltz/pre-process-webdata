@@ -3,7 +3,8 @@ This script cleans and pre-processes data coming in from 2021 crab pot DO data
 
 To initialize on your setup:
 
-1. ``` python 
+1. 
+``` python 
 pip install -r requirements.txt
 ```
 2. create .env file at the root of project directory
