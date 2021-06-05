@@ -9,7 +9,7 @@ pip install -r requirements.txt
 ```
 2. create .env file at the root of project directory with the appropriate data for your setup
 ``` python
-PATH = path_to_dir_where_data_are_stored
+SRC = path_to_dir_where_data_are_stored
 DEST = path_to_dir_where_completed_processed_data_are_sent
 FLAG = path_to_dir_where_flagged_data_are_sent
 ```

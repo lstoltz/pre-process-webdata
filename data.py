@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+import os, shutil
 class DataFile:
     def __init__(self, csv_file, gps_file, lid_file):
         self.csv_file = csv_file
@@ -28,7 +30,7 @@ class DataFile:
             return False
         else:
             return True # If data good, return true, else false
-    
+
     def loadCSVData(self):
         self.csv_data = pd.read_csv(self.csv_file)
 
@@ -75,49 +77,68 @@ class DataFile:
             check = any(char.isdigit() for char in item)
         return check
 
-    def checkDrops(self):
+    def calcDrops(self):
         idx_a = 0
         idx_b = 1
-        in_thresh = 5 # temperature change threshld over one observation for consituting a spike
-        out_thresh = -5
+        in_thresh = 4 # temperature change threshld over one observation for consituting a spike
+        out_thresh = -4
         spikes = []
 
         while idx_b <= self.csv_data.index[-1]:
             spikes.append(self.csv_data.iloc[idx_a, self.csv_data.columns.get_loc('DO Temperature (C)')] - self.csv_data.iloc[idx_b, self.csv_data.columns.get_loc('DO Temperature (C)')])
             idx_a += 1
             idx_b += 1
-            
+
         for idx in range(0,len(spikes)):
             if spikes[idx] > in_thresh:
-                self.in_spike.append(idx)
+                self.in_spike.append(idx+2)
 
         for idx in range(0, len(spikes)):
             if spikes[idx] < out_thresh:
-                self.out_spike.append(idx)
+                self.out_spike.append(idx-2)
 
+    def checkDrops(self):
+        temp_thresh = 10
         if (len(self.in_spike) + len(self.out_spike)) > 3:
-            return 2  # add to flagged folder
+            if self.csv_data['DO Temperature (C)'].mean() <= temp_thresh:
+                return 2  # add to flagged folder
         elif (len(self.in_spike) + len(self.out_spike)) < 1:
-            if self.csv_data['DO Temperature (C)'].mean() > 10:
-                return 0 # do nothing
-            else:
+            if self.csv_data['DO Temperature (C)'].mean() <= temp_thresh:
                 return 2 # add to flagged folder
+            else:
+                return 0 # do nothing
         elif (len(self.in_spike) + len(self.out_spike)) == 1 or (len(self.in_spike) + len(self.out_spike)) == 2:
-            return 1 
-             # NaN values before in_spike + 2 observations | NaN values after out_spike - 2 observations
+            if self.csv_data['DO Temperature (C)'].mean() <= temp_thresh:
+                return 1 # NaN values before in_spike + 2 observations | NaN values after out_spike - 2 observations
     def cleanData(self):
-        if len(self.in_spike) == 1:
-            self.csv_data.drop(self.csv_data.loc[0:self.in_spike[0]+2].index, inplace=True)
-        elif len(self.out_spike) ==1: 
-            self.csv_data.drop(self.csv_data.loc[self.out_spike[0]-2:-1].index, inplace=True)
+        if len(self.in_spike) == 1 and len(self.out_spike) == 0:
+            idx = self.csv_data.loc[0:self.in_spike[0],:]
+            self.csv_data.drop(self.csv_data.head(self.in_spike[0]).index, inplace=True)
+            self.csv_data.drop(self.csv_data.tail(2).index, inplace=True)
+
+        elif len(self.out_spike) == 1 and len(self.in_spike) == 0:
+            self.csv_data.drop(self.csv_data.head(2).index, inplace=True)
+            self.csv_data.drop(self.csv_data.tail(self.out_spike).index, inplace=True)
+
         elif len(self.in_spike) == 1 and len(self.out_spike) ==1:
-           self.csv_data.drop(self.csv_data.loc[self.in_spike[0]+2:self.out_spike[0]-2].index, inplace=True) # subset data between the two index values
-        
-         
+            self.csv_data.drop(self.csv_data.head(self.in_spike[0]).index, inplace=True)
+            self.csv_data.drop(self.csv_data.tail(self.out_spike[0]).index, inplace=True)
+             # subset data between the two index values
+
     def moveComplete(self, DEST):
-        # output_file = os.path.join(DEST, os.path.basename(file))
-        # df.to_csv(output_file, index = False, encoding='utf-8-sig', na_rep = 'NaN')  
-        pass
+        output_gps = os.path.join(DEST, os.path.basename(self.gps_file[0]))
+        output_lid = os.path.join(DEST, os.path.basename(self.lid_file[0]))
+        output_csv = os.path.join(DEST, os.path.basename(self.csv_file))
+
+        shutil.copy(self.gps_file[0], output_gps)
+        shutil.copy(self.lid_file[0], output_lid)
+        self.csv_data.to_csv(output_csv, index = False, encoding='utf-8-sig', na_rep = 'NaN')
 
     def moveFlag(self, FLAG):
-        pass
+        output_gps = os.path.join(FLAG, os.path.basename(self.gps_file[0]))
+        output_lid = os.path.join(FLAG, os.path.basename(self.lid_file[0]))
+        output_csv = os.path.join(FLAG, os.path.basename(self.csv_file))
+
+        shutil.copy(self.gps_file[0], output_gps)
+        shutil.copy(self.lid_file[0], output_lid)
+        self.csv_data.to_csv(output_csv, index = False, encoding='utf-8-sig', na_rep = 'NaN')
