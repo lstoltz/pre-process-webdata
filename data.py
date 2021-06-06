@@ -83,7 +83,6 @@ class DataFile:
         in_thresh = 4 # temperature change threshld over one observation for consituting a spike
         out_thresh = -4
         spikes = []
-
         while idx_b <= self.csv_data.index[-1]:
             spikes.append(self.csv_data.iloc[idx_a, self.csv_data.columns.get_loc('DO Temperature (C)')] - self.csv_data.iloc[idx_b, self.csv_data.columns.get_loc('DO Temperature (C)')])
             idx_a += 1
@@ -98,10 +97,15 @@ class DataFile:
                 self.out_spike.append(idx-2)
 
     def checkDrops(self):
-        temp_thresh = 10
+        temp_thresh = 11
+        print(len(self.in_spike))
+        print(len(self.out_spike))
+        print(self.csv_file)
         if (len(self.in_spike) + len(self.out_spike)) > 3:
             if self.csv_data['DO Temperature (C)'].mean() <= temp_thresh:
                 return 2  # add to flagged folder
+            else:
+                return 0
         elif (len(self.in_spike) + len(self.out_spike)) == 0:
             if self.csv_data['DO Temperature (C)'].mean() <= temp_thresh:
                 return 2 # add to flagged folder
@@ -110,6 +114,8 @@ class DataFile:
         elif (len(self.in_spike) + len(self.out_spike)) == 1 or (len(self.in_spike) + len(self.out_spike)) == 2:
             if self.csv_data['DO Temperature (C)'].mean() <= temp_thresh:
                 return 1 # NaN values before in_spike + 2 observations | NaN values after out_spike - 2 observations
+            else:
+                return 0
     def cleanData(self):
         if len(self.in_spike) == 1 and len(self.out_spike) == 0:
             idx = self.csv_data.loc[0:self.in_spike[0],:]
