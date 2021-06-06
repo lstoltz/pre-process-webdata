@@ -15,53 +15,56 @@ FLAG = os.getenv("FLAG")
 logger_list = list(range(2002001, 2002040))
 
 def findCSV(SRC):
+    # find all csv files in the SRC directory
     csvFiles = [file
                     for path, subdir, files in os.walk(SRC) # find all csv files in a directory
                     for file in glob(os.path.join(path, '*.csv'))]
     return csvFiles
 
 def findGPS(SRC):
+    # find all gps files in the SRC directory
     gpsFiles = [file
                     for path, subdir, files in os.walk(SRC) # find all csv files in a directory
                     for file in glob(os.path.join(path, '*.gps'))]
     return gpsFiles
 
 def findLID(SRC):
+    # find all lid files in the SRC directory
     lidFiles = [file
                     for path, subdir, files in os.walk(SRC) # find all csv files in a directory
                     for file in glob(os.path.join(path, '*.lid'))]
     return lidFiles
 
 def runChecks():
-    # Change this to use the for loop to call separate DataFile classes like this
+    # main functions that creates the datafile object. 
     for file in findCSV(SRC):
         currentCSV = os.path.basename(file)[:-20]
         try:
-            logger_sn = int(currentCSV[:7])
+            logger_sn = int(currentCSV[:7]) # pulling logger SN off the datafile
         except:
             continue
 
-        if logger_sn not in logger_list:
+        if logger_sn not in logger_list: # checking if the current CSV is acutally an OSU logger
             continue
         else:
-            gpsFilePath = fn.filter(findGPS(SRC), str('*'+currentCSV+'*'))
+            gpsFilePath = fn.filter(findGPS(SRC), str('*'+currentCSV+'*')) # grabbing the lid and gps files that correspond to current csv file
             lidFilePath = fn.filter(findLID(SRC), str('*'+currentCSV+'*'))
         # File load handles checks
             if gpsFilePath and lidFilePath:
-                data = DataFile(file, gpsFilePath, lidFilePath)
+                data = DataFile(file, gpsFilePath, lidFilePath) # putting data into DataFile object
             else:
                 continue
             try:
-                data.loadGPSData()
+                data.loadGPSData() # reading the GPS data into memory
             except:
                 continue
-            data.tidyGPS()
-            gps_good = data.checkGPSData()
+            data.tidyGPS() # reformatting the GPS data, which then saves back to SRC
+            gps_good = data.checkGPSData() # returns True or False if the GPS is valid
 
             if gps_good:
-                data.loadCSVData()
-                if data.checkCSVData():
-                    data.calcDrops()
+                data.loadCSVData() # loading the CSV data into memory
+                if data.checkCSVData(): # makes sure the appropriate headers are in the current CSV
+                    data.calcDrops() # conditionally checking the types of temperature changes
                     if data.checkDrops() == 0:
                         continue # do nothing
                     elif data.checkDrops() ==1:

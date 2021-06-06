@@ -102,7 +102,7 @@ class DataFile:
         if (len(self.in_spike) + len(self.out_spike)) > 3:
             if self.csv_data['DO Temperature (C)'].mean() <= temp_thresh:
                 return 2  # add to flagged folder
-        elif (len(self.in_spike) + len(self.out_spike)) < 1:
+        elif (len(self.in_spike) + len(self.out_spike)) == 0:
             if self.csv_data['DO Temperature (C)'].mean() <= temp_thresh:
                 return 2 # add to flagged folder
             else:
