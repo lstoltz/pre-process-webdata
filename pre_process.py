@@ -1,4 +1,4 @@
-import os, shutil
+import os
 from glob import glob
 import pandas as pd
 import fnmatch as fn
@@ -11,8 +11,16 @@ load_dotenv()
 SRC = os.getenv("SRC")
 DEST = os.getenv("DEST")
 FLAG = os.getenv("FLAG")
+LOG = os.getenv("LOG")
 
 logger_list = list(range(2002001, 2002040))
+
+def checklog():
+    with open(LOG, "r") as fp:
+        content = fp.readlines()
+    fp.close()
+    content = [x.strip() for x in content]
+    return content
 
 def findCSV(SRC):
     # find all csv files in the SRC directory
@@ -43,8 +51,9 @@ def runChecks():
             logger_sn = int(currentCSV[:7]) # pulling logger SN off the datafile
         except:
             continue
-
         if logger_sn not in logger_list: # checking if the current CSV is acutally an OSU logger
+            continue
+        elif currentCSV in checklog(): # checking if the current CSV has already been processed
             continue
         else:
             gpsFilePath = fn.filter(findGPS(SRC), str('*'+currentCSV+'*')) # grabbing the lid and gps files that correspond to current csv file
@@ -58,26 +67,34 @@ def runChecks():
                 data.loadGPSData() # reading the GPS data into memory
             except:
                 continue
+
             data.tidyGPS() # reformatting the GPS data, which then saves back to SRC
             gps_good = data.checkGPSData() # returns True or False if the GPS is valid
 
             if gps_good:
                 data.loadCSVData() # loading the CSV data into memory
+
                 if data.checkCSVData(): # makes sure the appropriate headers are in the current CSV
                     data.calcDrops() # conditionally checking the types of temperature changes
+
                     if data.checkDrops() == 0:
                         continue # do nothing
+
                     elif data.checkDrops() ==1:
                         data.cleanData() # clean data 
-                        data.moveComplete(DEST) 
+                        data.moveComplete(DEST)
+                        data.logFile(LOG) # logs in txt file
+                        
                     elif data.checkDrops() == 2:
                         data.moveFlag(FLAG)
+                        data.logFile(LOG) # logs in text file
                 else:
                     continue
             else:
                 continue # GPS data is bad, skipping
 
 def main():
+    checklog()
     runChecks()
 
 main()

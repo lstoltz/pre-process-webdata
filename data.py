@@ -98,9 +98,6 @@ class DataFile:
 
     def checkDrops(self):
         temp_thresh = 11
-        print(len(self.in_spike))
-        print(len(self.out_spike))
-        print(self.csv_file)
         if (len(self.in_spike) + len(self.out_spike)) > 3:
             if self.csv_data['DO Temperature (C)'].mean() <= temp_thresh:
                 return 2  # add to flagged folder
@@ -148,3 +145,10 @@ class DataFile:
         shutil.copy(self.gps_file[0], output_gps)
         shutil.copy(self.lid_file[0], output_lid)
         self.csv_data.to_csv(output_csv, index = False, encoding='utf-8-sig', na_rep = 'NaN')
+
+    def logFile(self,LOG):
+        currentCSV = os.path.basename(self.csv_file)[:-20]
+        with open(LOG,"a") as fp:
+            fp.write(currentCSV)
+            fp.write("\n")
+        fp.close()

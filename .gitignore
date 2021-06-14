@@ -4,3 +4,4 @@ flagged/
 complete/
 .env
 .vscode/
+log.txt
