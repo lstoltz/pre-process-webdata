@@ -12,7 +12,7 @@ pip install -r requirements.txt
 SRC = path_to_dir_where_data_are_stored
 DEST = path_to_dir_where_completed_processed_data_are_sent
 FLAG = path_to_dir_where_flagged_data_are_sent
-LOG = relative_path_to_txt_file
+LOG = relative_path_to_created_dotlog_file
 ```
 The LOG variables stores completed files and checks this file first in order to double process data files. 
 ## SRC folder
@@ -23,6 +23,9 @@ This directory will contain files that have been cleaned and are immediately rea
 
 ## FLAG folder
 This directory is home to files that have passed most of the checks for cleaning, but require additional scrutinity to ensure observed valeus are from the water. After running this script, check in the FLAG directory to view files that were not able to automatically be cleaned for soem reason or another. If a file does not pass all checks, the data are not automatically cleaned and it is up to the user to clean the files in the FLAG folder. 
+
+## LOG file
+Create a file at the root of the project that ends in .log. This is where completed files names will be added to keep a record of files that have already been processed. This will avoid the flagged folder from continually being populated with files that the user has already processed. 
 ## Using this script
 After establishing the appropriate file structure. Data can be continually added to the SRC folder. This folder will grow in length as more data are collected over the course of the summer. This script is designed to allow the user to continually feed data to the SRC folder with the DEST and FLAG folders being populated only with data that have not been run through this script previously. As a result, once files have been processed, the user can delete all files from the DEST and FLAG directories. Take care not to delete the LOG file at the root of of the project, this file stores a list of all previously processed files in said file, and if lost, there will be no record of which files have been processed. 
 
