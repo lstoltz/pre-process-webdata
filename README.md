@@ -31,4 +31,7 @@ After establishing the appropriate file structure. Data can be continually added
 
 The GPS file for each file is modified immediately and then saved back into the SRC directory. This step ensures consistancy across all GPS files. Coordinate files that are transmitted from the Deck Data Hub are sporatically inconsistent and therefore it is easier to pre-process all GPS cooridantes reguardless if the data files were collecting data from the ocean or not.
 
+## Arguments
+This script can be configured for either use on the US West coast, or Northeast. A regional argument must be supplied to run the script. To clean the data for the US west coast, supply the arguement "OR" without the quotes after the script name. To clean data from the Northeast supply the arguent "MA" without the quotes after the script name. The differece between these two cleaning profiles is largly differences in temperature thresholds. There is a much more subtle difference in air temps compared to water temps on the east coast compared to the west coast due to coastal upwelling in the California Current. 
+
 

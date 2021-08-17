@@ -1,12 +1,16 @@
-import os
+import os, sys
 from glob import glob
-import pandas as pd
 import fnmatch as fn
-import numpy as np
 from data import DataFile
 from dotenv import load_dotenv
 
 load_dotenv()
+try:
+    parm = sys.argv[1]
+    print(parm)
+except IndexError:
+    print("Error: Please input a regional argument (MA | OR)")
+    sys.exit()
 
 SRC = os.getenv("SRC")
 DEST = os.getenv("DEST")
@@ -51,7 +55,7 @@ def runChecks():
             logger_sn = int(currentCSV[:7]) # pulling logger SN off the datafile
         except:
             continue
-        if logger_sn not in logger_list: # checking if the current CSV is acutally an OSU logger
+        if logger_sn not in logger_list and checkArgs() == 1: # checking if the current CSV is acutally an OSU logger
             continue
         elif currentCSV in checklog(): # checking if the current CSV has already been processed
             continue
@@ -60,7 +64,7 @@ def runChecks():
             lidFilePath = fn.filter(findLID(SRC), str('*'+currentCSV+'*'))
         # File load handles checks
             if gpsFilePath and lidFilePath:
-                data = DataFile(file, gpsFilePath, lidFilePath) # putting data into DataFile object
+                data = DataFile(file, gpsFilePath, lidFilePath, checkArgs()) # putting data into DataFile object
             else:
                 continue
             try:
@@ -93,8 +97,21 @@ def runChecks():
             else:
                 continue # GPS data is bad, skipping
 
+def checkArgs():
+    try:
+        if sys.argv[1] == "OR":
+            return 1
+        elif sys.argv[1] == "MA":
+            return 2
+        else:
+            print("Error: Input region argument, either MA or OR")
+    except IndexError:
+        print("Input a region parameter, OR or MA")
+
 def main():
     checklog()
+    # print(checkArgs())
     runChecks()
+
 
 main()

@@ -2,10 +2,11 @@ import pandas as pd
 import numpy as np
 import os, shutil
 class DataFile:
-    def __init__(self, csv_file, gps_file, lid_file):
+    def __init__(self, csv_file, gps_file, lid_file, args): # args, 1 == Oregon, 2 == Massachusetts
         self.csv_file = csv_file
         self.gps_file = gps_file
         self.lid_file = lid_file
+        self.args = args
 
         self.gps_data = []
         self.csv_data = []
@@ -80,8 +81,12 @@ class DataFile:
     def calcDrops(self):
         idx_a = 0
         idx_b = 1
-        in_thresh = 4 # temperature change threshld over one observation for consituting a spike
-        out_thresh = -4
+        if self.args == 1:
+            in_thresh = 4 # temperature change threshld over one observation for consituting a spike
+            out_thresh = -4
+        elif self.args == 2:
+            in_thresh = 3 # temperature change threshld over one observation for consituting a spike
+            out_thresh = -3
         spikes = []
         while idx_b <= self.csv_data.index[-1]:
             spikes.append(self.csv_data.iloc[idx_a, self.csv_data.columns.get_loc('DO Temperature (C)')] - self.csv_data.iloc[idx_b, self.csv_data.columns.get_loc('DO Temperature (C)')])
@@ -97,7 +102,10 @@ class DataFile:
                 self.out_spike.append(idx-2)
 
     def checkDrops(self):
-        temp_thresh = 11
+        if self.args == 1:
+            temp_thresh = 11
+        elif self.args == 2:
+            temp_thresh = 14
         if (len(self.in_spike) + len(self.out_spike)) > 3:
             if self.csv_data['DO Temperature (C)'].mean() <= temp_thresh:
                 return 2  # add to flagged folder
