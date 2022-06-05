@@ -129,7 +129,7 @@ class DataFile:
 
         elif len(self.out_spike) == 1 and len(self.in_spike) == 0:
             self.csv_data.drop(self.csv_data.head(2).index, inplace=True)
-            self.csv_data.drop(self.csv_data.tail(self.out_spike).index, inplace=True)
+            self.csv_data.drop(self.csv_data.tail(self.out_spike[0]).index, inplace=True)
 
         elif len(self.in_spike) == 1 and len(self.out_spike) ==1:
             self.csv_data.drop(self.csv_data.head(self.in_spike[0]).index, inplace=True)
